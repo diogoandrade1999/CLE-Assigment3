@@ -1,4 +1,8 @@
 //
+// Diogo Andrade 89265
+// Francisco Silveira 84802
+//
+// BASE CODE:
 // Tomás Oliveira e Silva, November 2017
 //
 
@@ -85,7 +89,6 @@ int main(int argc, char **argv)
            (long)(samples_data_size * 3), get_delta_time());
 
     // run the computational kernel
-    // as an example, N_SECTORS threads are launched where each thread deals with one sector
     unsigned int gridDimX, gridDimY, gridDimZ, blockDimX, blockDimY, blockDimZ;
     int n_samples;
 
@@ -120,7 +123,7 @@ int main(int argc, char **argv)
     printf("The transfer of %ld bytes from the device to the host took %.3e seconds\n",
            (long)samples_data_size, get_delta_time());
 
-    // compute the modified sector data on the CPU
+    // compute the modified samples data on the CPU
     (void)get_delta_time();
     for (i = 0; i < N_SAMPLES; i++)
         ccc_samples_cpu_kernel(host_results_data, host_samples_data_x, host_samples_data_y, n_samples, (i + (i % 32) * (DISTANCE - 1)) % n_samples);
@@ -156,7 +159,7 @@ int main(int argc, char **argv)
 
 static void ccc_samples_cpu_kernel(double *results_data, double *samples_data_x, double *samples_data_y, unsigned int n_samples, unsigned int point)
 {
-
+    // compute the circular cross-correlation
     for (int k = 0; k < n_samples; k++)
         results_data[point] += (samples_data_x[k] * samples_data_y[(point + k) % n_samples]);
 }
@@ -173,8 +176,10 @@ __global__ static void ccc_samples_cuda_kernel(double *__restrict__ results_data
     if (idx >= n_samples)
         return; // safety precaution
 
+    // ajust point
     point = (idx + (idx % 32) * (distance - 1)) % n_samples;
 
+    // compute the circular cross-correlation
     for (int k = 0; k < n_samples; k++)
         results_data[point] += (samples_data_x[k] * samples_data_y[(point + k) % n_samples]);
 }
